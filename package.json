@@ -1,0 +1,15 @@
+{
+  "name": "matjar-aqtash",
+  "version": "1.0.0",
+  "description": "محمد الأقطش للمجمدات — متجر إلكتروني (طلبيات، توصيل، أرصدة، لوحة متجر)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
