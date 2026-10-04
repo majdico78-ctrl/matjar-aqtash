@@ -51,10 +51,31 @@ app.get("/v1/x/matjar-delivered", (req, res) => {
   res.json(a);
 });
 
+/* ---------- رقم صاحب الدكان ---------- */
+app.get("/v1/x/matjar-phone", (req, res) => {
+  let v = load(PHONE_FILE);
+  if (!v || !v.phone) { fs.writeFileSync(path.join(DATA, PHONE_FILE), JSON.stringify({ phone: DEFAULT_PHONE })); v = { phone: DEFAULT_PHONE }; }
+  res.json({ phone: v.phone });
+});
+app.post("/v1/x/matjar-phone", (req, res) => {
+  try {
+    const p = String((req.body || {}).phone || "").replace(/\D/g, "");
+    if (!/^(07\d{8}|9627\d{8})$/.test(p)) return res.status(400).json({ error: "رقم أردني غير صالح — صيغته 07XXXXXXXX" });
+    const clean = p.startsWith("962") ? "0" + p.slice(3) : p;
+    save(PHONE_FILE, { phone: clean });
+    res.json({ ok: true, phone: clean });
+  } catch { res.status(400).json({ error: "طلب غير صالح" }); }
+});
+
 /* ---------- رمز دخول الموظف ---------- */
 const PIN_FILE = "matjar-pin.json";
-const STORE_PHONE = "0792145720";
+const PHONE_FILE = "matjar-phone.json";
+const DEFAULT_PHONE = "0792145720";
 const DEFAULT_PIN = "1234";
+const ownerPhone = () => {
+  try { return load(PHONE_FILE).phone || DEFAULT_PHONE; }
+  catch { return DEFAULT_PHONE; }
+};
 const loadPin = () => {
   const v = load(PIN_FILE);
   if (v && v.pin) return v;
@@ -62,8 +83,9 @@ const loadPin = () => {
   return { pin: DEFAULT_PIN };
 };
 const isStorePhone = (p) => {
+  const cur = ownerPhone();
   const c = String(p || "").replace(/\D/g, "");
-  return c === STORE_PHONE || c === STORE_PHONE.replace(/^0/, "962");
+  return c === cur || c === cur.replace(/^0/, "962");
 };
 app.get("/v1/x/matjar-pin", (req, res) => {
   const phone = req.query.phone || "";
@@ -90,6 +112,9 @@ app.get("/v1/x/matjar-orders", (req, res) => res.json(load("matjar-orders.json")
 app.post("/v1/x/matjar-orders", (req, res) => {
   try {
     const order = { id: "o" + Date.now(), ...req.body };
+    // إجمالي محسوب دائماً — لو ما وصل من التطبيق يُجمع من الأغراض
+    if (typeof order.total !== "number")
+      order.total = (order.items || []).reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 0), 0);
     const all = load("matjar-orders.json");
     all.unshift(order);
     save("matjar-orders.json", all);
