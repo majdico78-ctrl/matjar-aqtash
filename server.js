@@ -51,6 +51,39 @@ app.get("/v1/x/matjar-delivered", (req, res) => {
   res.json(a);
 });
 
+/* ---------- رمز دخول الموظف ---------- */
+const PIN_FILE = "matjar-pin.json";
+const STORE_PHONE = "0792145720";
+const DEFAULT_PIN = "1234";
+const loadPin = () => {
+  const v = load(PIN_FILE);
+  if (v && v.pin) return v;
+  fs.writeFileSync(path.join(DATA, PIN_FILE), JSON.stringify({ pin: DEFAULT_PIN }));
+  return { pin: DEFAULT_PIN };
+};
+const isStorePhone = (p) => {
+  const c = String(p || "").replace(/\D/g, "");
+  return c === STORE_PHONE || c === STORE_PHONE.replace(/^0/, "962");
+};
+app.get("/v1/x/matjar-pin", (req, res) => {
+  const phone = req.query.phone || "";
+  if (phone) {
+    if (isStorePhone(phone)) return res.json({ pin: loadPin().pin });
+    return res.status(403).json({ error: "الرقم ما هو رقم المحل" });
+  }
+  res.json({ pin: loadPin().pin });
+});
+app.post("/v1/x/matjar-pin", (req, res) => {
+  try {
+    const { phone, newPin } = req.body || {};
+    if (!isStorePhone(phone)) return res.status(403).json({ error: "الرقم ما هو رقم المحل" });
+    const pin = String(newPin || "").replace(/\D/g, "");
+    if (pin.length < 4) return res.status(400).json({ error: "الرمز ٤ أرقام على الأقل" });
+    save(PIN_FILE, { pin });
+    res.json({ ok: true, pin });
+  } catch { res.status(400).json({ error: "طلب غير صالح" }); }
+});
+
 /* ---------- الطلبيات ---------- */
 app.get("/v1/x/matjar-orders", (req, res) => res.json(load("matjar-orders.json")));
 
