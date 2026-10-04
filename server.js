@@ -77,8 +77,8 @@ app.post("/v1/x/matjar-pin", (req, res) => {
   try {
     const { phone, newPin } = req.body || {};
     if (!isStorePhone(phone)) return res.status(403).json({ error: "الرقم ما هو رقم المحل" });
-    const pin = String(newPin || "").replace(/\D/g, "");
-    if (pin.length < 4) return res.status(400).json({ error: "الرمز ٤ أرقام على الأقل" });
+    const pin = String(newPin || "").trim();
+    if (pin.length < 4) return res.status(400).json({ error: "الرمز ٤ خانات على الأقل — أرقام وحروف ورموز" });
     save(PIN_FILE, { pin });
     res.json({ ok: true, pin });
   } catch { res.status(400).json({ error: "طلب غير صالح" }); }
