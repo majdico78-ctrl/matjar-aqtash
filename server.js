@@ -54,7 +54,7 @@ app.get("/v1/x/matjar-delivered", (req, res) => {
 /* ---------- رقم صاحب الدكان ---------- */
 app.get("/v1/x/matjar-phone", (req, res) => {
   let v = load(PHONE_FILE);
-  if (!v || !v.phone) { fs.writeFileSync(path.join(DATA, PHONE_FILE), JSON.stringify({ phone: DEFAULT_PHONE })); v = { phone: DEFAULT_PHONE }; }
+  if (!v) { fs.writeFileSync(path.join(DATA, PHONE_FILE), JSON.stringify({ phone: DEFAULT_PHONE })); v = { phone: DEFAULT_PHONE }; }
   res.json({ phone: v.phone });
 });
 app.post("/v1/x/matjar-phone", (req, res) => {
@@ -70,7 +70,7 @@ app.post("/v1/x/matjar-phone", (req, res) => {
 /* ---------- رمز دخول الموظف ---------- */
 const PIN_FILE = "matjar-pin.json";
 const PHONE_FILE = "matjar-phone.json";
-const DEFAULT_PHONE = "0792145720";
+const DEFAULT_PHONE = ""; // فارغ أول مرة — صاحب الدكان يدخل رقمه ويؤكده
 const DEFAULT_PIN = "1234";
 const ownerPhone = () => {
   try { return load(PHONE_FILE).phone || DEFAULT_PHONE; }
