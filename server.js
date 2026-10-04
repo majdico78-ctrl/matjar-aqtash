@@ -21,6 +21,36 @@ const load = (f) => { try { return JSON.parse(fs.readFileSync(path.join(DATA, f)
 const save = (f, x) => { ensureData(); fs.writeFileSync(path.join(DATA, f), JSON.stringify(x, null, 2)); };
 const normPhone = (p) => (p || "").replace(/\D/g, "");
 
+/* ---------- أرشيف الطلبيات المسلَّمة (ملف يومي) ---------- */
+const ammanDay = (d = new Date()) => new Date(d.getTime() + 3 * 3600 * 1000).toISOString().slice(0, 10);
+function archiveOrder(o, day) {
+  const arc = load("matjar-delivered.json");
+  if (!arc || typeof arc !== "object" || Array.isArray(arc)) { ensureData(); fs.writeFileSync(path.join(DATA, "matjar-delivered.json"), "{}"); }
+  const a = (typeof arc === "object" && !Array.isArray(arc) && Object.keys(arc).length) ? arc : {};
+  const k = day || ammanDay();
+  if (!a[k]) a[k] = [];
+  if (!a[k].some((x) => x.id === o.id)) {
+    a[k].unshift({ ...o, deliveredAt: new Date().toISOString(), deliveredDay: k });
+    save("matjar-delivered.json", a);
+  }
+}
+
+app.get("/v1/x/matjar-delivered", (req, res) => {
+  const arc = load("matjar-delivered.json");
+  const a = (arc && typeof arc === "object" && !Array.isArray(arc)) ? arc : {};
+  let changed = false;
+  for (const o of load("matjar-orders.json")) {
+    if (!["تم الاستلام", "سُلّمت"].includes(o.status || "")) continue;
+    if (Object.values(a).some((arr) => arr.some((x) => x.id === o.id))) continue;
+    const k = ammanDay();
+    if (!a[k]) a[k] = [];
+    a[k].unshift({ ...o, deliveredDay: k });
+    changed = true;
+  }
+  if (changed) save("matjar-delivered.json", a);
+  res.json(a);
+});
+
 /* ---------- الطلبيات ---------- */
 app.get("/v1/x/matjar-orders", (req, res) => res.json(load("matjar-orders.json")));
 
@@ -35,13 +65,16 @@ app.post("/v1/x/matjar-orders", (req, res) => {
 });
 
 app.patch("/v1/x/matjar-orders", (req, res) => {
-  const { id, status } = req.body || {};
+  const { id, status, fee, total } = req.body || {};
   if (!id || !status) return res.status(400).json({ error: "id وstatus مطلوبان" });
   const all = load("matjar-orders.json");
   const o = all.find((x) => x.id === id);
   if (!o) return res.status(404).json({ error: "الطلب غير موجود" });
   o.status = status;
+  if (typeof fee === "number") o.fee = fee;
+  if (typeof total === "number") o.total = total;
   save("matjar-orders.json", all);
+  if (["تم الاستلام", "سُلّمت"].includes(status)) archiveOrder(o);
   res.json(o);
 });
 
