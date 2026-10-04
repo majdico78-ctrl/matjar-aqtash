@@ -96,6 +96,21 @@ app.post("/v1/x/matjar-wallet", (req, res) => {
   res.status(201).json(row);
 });
 
+/* ---------- رسائل الزبائن ---------- */
+const MSGS = "matjar-messages.json";
+app.get("/v1/x/matjar-messages", (req, res) => {
+  const oid = (req.query.orderId || "").trim();
+  const all = load(MSGS);
+  res.json(oid ? all.filter((m) => m.orderId === oid) : all);
+});
+app.post("/v1/x/matjar-messages", (req, res) => {
+  const b = req.body || {};
+  if (!b.orderId || !b.text) return res.status(400).json({ error: "orderId و text مطلوبان" });
+  const row = { id: "m" + Date.now(), orderId: b.orderId, phone: normPhone(b.phone || "") || undefined, text: String(b.text), total: Number(b.total) || undefined, at: new Date().toLocaleString("ar-JO") };
+  const all = load(MSGS); all.push(row); save(MSGS, all);
+  res.status(201).json(row);
+});
+
 /* ---------- بلاطات الخارطة ---------- */
 const UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36";
 const mem = new Map();
