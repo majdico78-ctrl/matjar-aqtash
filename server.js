@@ -71,7 +71,7 @@ app.post("/v1/x/matjar-phone", (req, res) => {
 const PIN_FILE = "matjar-pin.json";
 const PHONE_FILE = "matjar-phone.json";
 const DEFAULT_PHONE = ""; // فارغ أول مرة — صاحب الدكان يدخل رقمه ويؤكده
-const DEFAULT_PIN = "9178";
+const DEFAULT_PIN = "1234";
 const ownerPhone = () => {
   try { return load(PHONE_FILE).phone || DEFAULT_PHONE; }
   catch { return DEFAULT_PHONE; }
