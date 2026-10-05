@@ -276,7 +276,7 @@ window.vellum = {
   return html;
 })();
 
-app.get("/", (req, res) => { res.set("Content-Type", "text/html; charset=utf-8"); res.send(INDEX); });
+app.get("/", (req, res) => { res.set("Content-Type", "text/html; charset=utf-8"); res.set("Cache-Control", "no-cache"); res.send(INDEX); });
 app.use(express.static(PUBLIC, { index: false, maxAge: "1h" }));
 // أي مسار غير معروف يرجع للواجهة (روابط مباشرة)
 app.use((req, res) => { res.set("Content-Type", "text/html; charset=utf-8"); res.send(INDEX); });
