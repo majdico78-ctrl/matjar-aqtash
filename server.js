@@ -1,5 +1,5 @@
 /*
-  محمد الأقطش للمجمدات — خادم الموقع المستقل
+  المتجر — خادم الموقع المستقل
   يقدّم واجهة المتجر (مجلد public) وكل مسارات البيانات:
     /v1/x/matjar-orders    (GET/POST/PATCH/DELETE) — الطلبيات
     /v1/x/matjar-products  (GET/POST)              — قائمة المنتجات وصورها
@@ -282,4 +282,4 @@ app.use(express.static(PUBLIC, { index: false, maxAge: "1h" }));
 app.use((req, res) => { res.set("Content-Type", "text/html; charset=utf-8"); res.send(INDEX); });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`متجر محمد الأقطش يعمل على المنفذ ${PORT}`));
+app.listen(PORT, () => console.log(`المتجر يعمل على المنفذ ${PORT}`));
