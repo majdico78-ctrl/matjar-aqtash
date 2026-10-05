@@ -57,7 +57,15 @@ app.get("/v1/x/matjar-phone", (req, res) => {
   if (!v) { fs.writeFileSync(path.join(DATA, PHONE_FILE), JSON.stringify({ phone: DEFAULT_PHONE })); v = { phone: DEFAULT_PHONE }; }
   res.json({ phone: v.phone });
 });
+app.post("/v1/x/matjar-phone-check", (req, res) => {
+  try {
+    const ok = String((req.body || {}).code || "").trim() === PHONE_SECRET;
+    res.json({ ok });
+  } catch { res.status(400).json({ ok: false }); }
+});
 app.post("/v1/x/matjar-phone", (req, res) => {
+  // تغيير رقم الدكان محميّ بالرقم السري (9178) — لا يُقبل من دونها حتى لو فُتحت اللوحة
+  if (String((req.body || {}).code || "").trim() !== PHONE_SECRET) return res.status(403).json({ error: "الرقم السري غلط أو ناقص" });
   try {
     const p = String((req.body || {}).phone || "").replace(/\D/g, "");
     if (!/^(07\d{8}|9627\d{8})$/.test(p)) return res.status(400).json({ error: "رقم أردني غير صالح — صيغته 07XXXXXXXX" });
@@ -69,6 +77,7 @@ app.post("/v1/x/matjar-phone", (req, res) => {
 
 /* ---------- رمز دخول الموظف ---------- */
 const PIN_FILE = "matjar-pin.json";
+const PHONE_SECRET = "9178"; // الرقم السري لخانة رقم الدكان — منفصل عن رمز دخول اللوحة
 const PHONE_FILE = "matjar-phone.json";
 const DEFAULT_PHONE = ""; // فارغ أول مرة — صاحب الدكان يدخل رقمه ويؤكده
 const DEFAULT_PIN = "1234";
