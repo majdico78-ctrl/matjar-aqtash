@@ -71,7 +71,7 @@ app.post("/v1/x/matjar-phone", (req, res) => {
 const PIN_FILE = "matjar-pin.json";
 const PHONE_FILE = "matjar-phone.json";
 const DEFAULT_PHONE = ""; // فارغ أول مرة — صاحب الدكان يدخل رقمه ويؤكده
-const DEFAULT_PIN = "1234";
+const DEFAULT_PIN = "9178";
 const ownerPhone = () => {
   try { return load(PHONE_FILE).phone || DEFAULT_PHONE; }
   catch { return DEFAULT_PHONE; }
@@ -89,11 +89,15 @@ const isStorePhone = (p) => {
 };
 app.get("/v1/x/matjar-pin", (req, res) => {
   const phone = req.query.phone || "";
-  if (phone) {
-    if (isStorePhone(phone)) return res.json({ pin: loadPin().pin });
-    return res.status(403).json({ error: "الرقم ما هو رقم المحل" });
-  }
-  res.json({ pin: loadPin().pin });
+  if (!phone) return res.status(403).json({ error: "الرمز سري — التحقق من /v1/x/matjar-pin-check والاستعادة برقم المحل" });
+  if (isStorePhone(phone)) return res.json({ pin: loadPin().pin });
+  return res.status(403).json({ error: "الرقم ما هو رقم المحل" });
+});
+app.post("/v1/x/matjar-pin-check", (req, res) => {
+  try {
+    const ok = String((req.body || {}).pin || "").trim() === loadPin().pin;
+    res.json({ ok });
+  } catch { res.status(400).json({ ok: false }); }
 });
 app.post("/v1/x/matjar-pin", (req, res) => {
   try {
