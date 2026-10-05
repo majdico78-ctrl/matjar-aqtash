@@ -82,6 +82,9 @@ const loadPin = () => {
   fs.writeFileSync(path.join(DATA, PIN_FILE), JSON.stringify({ pin: DEFAULT_PIN }));
   return { pin: DEFAULT_PIN };
 };
+// عند كل إقلاع: الرمز يبدأ 9178 (الخطة المجانية تنمسح بياناتها مع كل نشر أصلاً)
+ensureData();
+fs.writeFileSync(path.join(DATA, PIN_FILE), JSON.stringify({ pin: DEFAULT_PIN }));
 const isStorePhone = (p) => {
   const cur = ownerPhone();
   const c = String(p || "").replace(/\D/g, "");
